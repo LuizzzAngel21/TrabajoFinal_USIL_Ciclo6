@@ -1,0 +1,102 @@
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>🛒 Gestión de Compras</h2>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark fw-bold">
+            Solicitudes Pendientes (Stock Insuficiente)
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Motivo</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let solicitud of solicitudes">
+                            <td>{{ solicitud.idSolicitud }}</td>
+                            <td>{{ solicitud.motivo }}</td>
+                            <td>{{ solicitud.fechaSolicitud | date }}</td>
+                            <td>
+                                <button class="btn btn-success btn-sm" data-bs-toggle="modal"
+                                    data-bs-target="#ordenModal" (click)="abrirModal(solicitud)">
+                                    Generar Orden
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div *ngIf="solicitudes.length === 0" class="alert alert-info text-center">
+                    No hay solicitudes de compra pendientes.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal fuera del contenedor principal para evitar problemas de superposición -->
+<div class="modal fade" id="ordenModal" tabindex="-1" aria-labelledby="ordenModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="ordenModalLabel">Confirmar Orden de Compra</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2"><strong>Producto:</strong> {{ nombreProducto }}</p>
+
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Proveedor</label>
+                        <select class="form-select" [(ngModel)]="idProveedor" name="idProveedor"
+                            (ngModelChange)="obtenerPrecioUnitario()">
+                            <option [ngValue]="null" disabled selected>Seleccione un proveedor...</option>
+                            <option *ngFor="let p of proveedores" [ngValue]="p.idProveedor">
+                                {{ p.nombreProveedor }} (RUC: {{ p.ruc }})
+                            </option>
+                        </select>
+                    </div>
+                </form>
+
+                <hr>
+
+                <!-- Fórmula Financiera Clara -->
+                <div class="bg-light p-3 rounded border">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Cantidad Solicitada:</span>
+                        <span class="fw-bold">{{ cantidadMostrada }} unid.</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Precio Unitario (Ref):</span>
+                        <span class="fw-bold">{{ precioUnitarioMostrado | currency: 'PEN':'symbol':'1.2-2' }}</span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-dark">MONTO TOTAL:</span>
+                        <span class="fs-5 fw-bold text-success">{{ precioTotal | currency: 'PEN':'symbol':'1.2-2'
+                            }}</span>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <!-- data-bs-dismiss="modal" agregado para cerrar al confirmar si es exitoso, 
+                     pero idealmente se controla programáticamente. 
+                     Aquí lo dejamos para UX inmediata si la validación pasa. -->
+                <button type="button" class="btn btn-success" [disabled]="!idProveedor || precioTotal <= 0"
+                    (click)="confirmarCompra()" data-bs-dismiss="modal">
+                    Confirmar Compra
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

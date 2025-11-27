@@ -1,0 +1,109 @@
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Requerimientos Pendientes</h2>
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearModal">
+            + Nuevo Requerimiento
+        </button>
+    </div>
+
+    <div class="table-responsive shadow-sm p-3 mb-5 bg-body rounded">
+        <table class="table table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Código</th>
+                    <th>Solicitante (Depto)</th>
+                    <th>Prioridad</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let item of listaRequerimientos">
+                    <td>{{ item.idRequerimiento }}</td>
+                    <td>{{ item.codigoSolicitud }}</td>
+                    <td>{{ item.areaDepartamento }}</td>
+                    <td>
+                        <span class="badge rounded-pill" [style.background-color]="item.colorPrioridad">
+                            {{ item.prioridad }}
+                        </span>
+                    </td>
+                    <td>
+                        <span *ngIf="item.estado !== 'Pendiente'" class="badge bg-secondary">
+                            {{ item.estado }}
+                        </span>
+                        <span *ngIf="item.estado === 'Pendiente'" class="badge bg-warning text-dark">
+                            Pendiente
+                        </span>
+                    </td>
+                    <td>
+                        <button *ngIf="item.estado === 'Pendiente'" class="btn btn-outline-success btn-sm"
+                            (click)="atender(item.idRequerimiento)">
+                            ✓ Atender
+                        </button>
+                        <span *ngIf="item.estado !== 'Pendiente'" class="text-muted small">
+                            <i class="bi bi-check-circle-fill"></i> Completado
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div *ngIf="listaRequerimientos.length === 0" class="alert alert-info text-center mt-3">
+            No hay requerimientos pendientes en este momento.
+        </div>
+    </div>
+
+    <div class="modal fade" id="crearModal" tabindex="-1" aria-labelledby="crearModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="crearModalLabel">Nuevo Requerimiento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Prioridad</label>
+                            <select class="form-select" [(ngModel)]="nuevoReq.prioridad" name="prioridad">
+                                <option value="ALTA">Alta</option>
+                                <option value="MEDIA">Media</option>
+                                <option value="BAJA">Baja</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Producto</label>
+                            <select class="form-select" [(ngModel)]="nuevoReq.idProducto" name="producto">
+                                <option [ngValue]="0" disabled>Seleccione un producto...</option>
+                                <option *ngFor="let p of listaProductos" [ngValue]="p.idProducto">
+                                    {{ p.nombre }} (Stock: {{ p.stockTotal }})
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Cantidad</label>
+                            <input type="number" class="form-control" [(ngModel)]="nuevoReq.cantidad" name="cantidad" min="1" placeholder="0">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Observación</label>
+                            <textarea class="form-control" rows="2" 
+                                      [(ngModel)]="nuevoReq.observacion" name="observacion" 
+                                      placeholder="Motivo del pedido..."></textarea>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" (click)="guardar()" data-bs-dismiss="modal">
+                        <i class="bi bi-save"></i> Guardar Solicitud
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
