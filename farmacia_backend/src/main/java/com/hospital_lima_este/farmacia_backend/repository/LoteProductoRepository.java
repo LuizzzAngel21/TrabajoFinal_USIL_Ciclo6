@@ -10,4 +10,6 @@ public interface LoteProductoRepository extends JpaRepository<LoteProducto, Inte
 
     java.util.Optional<LoteProducto> findFirstByProductoAndStockActualGreaterThan(
             com.hospital_lima_este.farmacia_backend.model.Producto producto, Integer stock);
+
+    java.util.List<LoteProducto> findTop5ByStockActualGreaterThanOrderByStockActualAsc(Integer stock);
 }

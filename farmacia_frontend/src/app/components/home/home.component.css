@@ -1,0 +1,8 @@
+/* home.component.css */
+.card {
+    border: none;
+    border-radius: 10px;
+}
+.card-header {
+    border-bottom: 1px solid #f0f0f0;
+}

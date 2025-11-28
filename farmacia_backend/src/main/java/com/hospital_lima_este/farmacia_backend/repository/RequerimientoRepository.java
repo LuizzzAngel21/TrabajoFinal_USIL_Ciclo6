@@ -8,4 +8,6 @@ import java.util.List;
 @Repository
 public interface RequerimientoRepository extends JpaRepository<Requerimiento, Integer> {
     List<Requerimiento> findByEstadoIgnoreCase(String estado);
+
+    long countByEstado(String estado);
 }

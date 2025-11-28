@@ -12,4 +12,6 @@ import java.util.List;
 public interface MovimientoInventarioRepository extends JpaRepository<MovimientoInventario, Integer> {
     @Query("SELECT m FROM MovimientoInventario m JOIN m.inventario i JOIN i.loteProducto l WHERE l.producto.idProducto = :idProducto ORDER BY m.fechaMovimiento DESC")
     List<MovimientoInventario> findByProductoId(@Param("idProducto") Integer idProducto);
+
+    List<MovimientoInventario> findTop5ByOrderByFechaMovimientoDesc();
 }

@@ -1,0 +1,110 @@
+<div class="container mt-4">
+    <h2 class="mb-4 text-primary fw-bold"><i class="bi bi-speedometer2"></i> Dashboard Administrativo</h2>
+
+    <!-- Tarjetas de Resumen (Estáticas por ahora o dinámicas si agregas más datos) -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3 shadow-sm">
+                <div class="card-header">Requerimientos</div>
+                <div class="card-body">
+                    <h5 class="card-title display-6 fw-bold">{{ dashboardData?.estadoRequerimientos?.PENDIENTE || 0 }}
+                    </h5>
+                    <p class="card-text">Pendientes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3 shadow-sm">
+                <div class="card-header">Atendidos</div>
+                <div class="card-body">
+                    <h5 class="card-title display-6 fw-bold">{{ dashboardData?.estadoRequerimientos?.ATENDIDO || 0 }}
+                    </h5>
+                    <p class="card-text">Total Procesados</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3 shadow-sm">
+                <div class="card-header">Stock Crítico</div>
+                <div class="card-body">
+                    <h5 class="card-title display-6 fw-bold">{{ barChartData.labels?.length || 0 }}</h5>
+                    <p class="card-text">Productos en riesgo</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3 shadow-sm">
+                <div class="card-header">Movimientos</div>
+                <div class="card-body">
+                    <h5 class="card-title display-6 fw-bold">Activo</h5>
+                    <p class="card-text">Monitoreo en tiempo real</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row mb-4" *ngIf="isDataLoaded">
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-bold">
+                    <i class="bi bi-bar-chart-fill text-danger"></i> Stock Crítico (Top 5)
+                </div>
+                <div class="card-body">
+                    <canvas baseChart [data]="barChartData" [options]="barChartOptions" [type]="barChartType">
+                    </canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-bold">
+                    <i class="bi bi-pie-chart-fill text-primary"></i> Estado de Requerimientos
+                </div>
+                <div class="card-body">
+                    <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" [type]="pieChartType">
+                    </canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Actividad Reciente -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white fw-bold">
+            <i class="bi bi-clock-history text-secondary"></i> Última Actividad del Almacén
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Producto</th>
+                            <th>Tipo</th>
+                            <th>Cantidad</th>
+                            <th>Motivo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let mov of dashboardData?.ultimosMovimientos">
+                            <td>{{ mov.fechaMovimiento | date:'short' }}</td>
+                            <td class="fw-bold">{{ mov.inventario?.loteProducto?.producto?.nombreProducto }}</td>
+                            <td>
+                                <span class="badge"
+                                    [ngClass]="{'bg-success': mov.tipoMovimiento === 'ENTRADA', 'bg-danger': mov.tipoMovimiento === 'SALIDA'}">
+                                    {{ mov.tipoMovimiento }}
+                                </span>
+                            </td>
+                            <td>{{ mov.cantidad }}</td>
+                            <td class="text-muted small">{{ mov.motivo }}</td>
+                        </tr>
+                        <tr *ngIf="!dashboardData?.ultimosMovimientos?.length">
+                            <td colspan="5" class="text-center py-3 text-muted">No hay actividad reciente.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
