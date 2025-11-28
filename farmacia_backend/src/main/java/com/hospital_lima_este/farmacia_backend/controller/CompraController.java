@@ -42,13 +42,26 @@ public class CompraController {
     }
 
     @GetMapping("/precio/{idProducto}/{idProveedor}")
-    public ResponseEntity<BigDecimal> getPrecioReferencial(@PathVariable Integer idProducto, @PathVariable Integer idProveedor) {
+    public ResponseEntity<BigDecimal> getPrecioReferencial(@PathVariable Integer idProducto,
+            @PathVariable Integer idProveedor) {
         return ResponseEntity.ok(compraService.getPrecioReferencial(idProducto, idProveedor));
     }
 
     @GetMapping("/solicitudes/{id}/detalles")
-    public ResponseEntity<List<com.hospital_lima_este.farmacia_backend.model.DetalleSolicitudCompra>> getDetallesSolicitud(@PathVariable Integer id) {
+    public ResponseEntity<List<com.hospital_lima_este.farmacia_backend.model.DetalleSolicitudCompra>> getDetallesSolicitud(
+            @PathVariable Integer id) {
         return ResponseEntity.ok(compraService.getDetallesSolicitud(id));
+    }
+
+    @GetMapping("/ordenes")
+    public ResponseEntity<List<OrdenCompraDTO>> listarOrdenesEmitidas() {
+        return ResponseEntity.ok(compraService.listarOrdenesEmitidas());
+    }
+
+    @PostMapping("/ordenes/{id}/recepcionar")
+    public ResponseEntity<Void> recepcionarOrden(@PathVariable Integer id) {
+        compraService.recepcionarOrden(id);
+        return ResponseEntity.ok().build();
     }
 
     @Data

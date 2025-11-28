@@ -2,13 +2,14 @@
     <h2 class="mb-4">Catálogo de Productos</h2>
 
     <div class="table-responsive">
-        <table class="table table-hover table-bordered">
+        <table class="table table-hover table-bordered align-middle">
             <thead class="table-dark">
                 <tr>
                     <th>ID</th>
                     <th>Nombre</th>
                     <th>Stock Total</th>
                     <th>Estado</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -21,11 +22,63 @@
                         </span>
                     </td>
                     <td>{{prod.estado}}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm text-white" data-bs-toggle="modal"
+                            data-bs-target="#kardexModal" (click)="verHistorial(prod)">
+                            📜 Historial
+                        </button>
+                    </td>
                 </tr>
                 <tr *ngIf="productos.length === 0">
-                    <td colspan="4" class="text-center">No hay productos en el catálogo.</td>
+                    <td colspan="5" class="text-center">No hay productos en el catálogo.</td>
                 </tr>
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Modal Kardex -->
+<div class="modal fade" id="kardexModal" tabindex="-1" aria-labelledby="kardexModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="kardexModalLabel">Kardex de {{ productoSeleccionado }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Cantidad</th>
+                                <th>Motivo</th>
+                                <th>Usuario</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let mov of historial">
+                                <td>{{ mov.fecha | date:'medium' }}</td>
+                                <td
+                                    [ngClass]="{'text-success fw-bold': mov.tipo === 'ENTRADA', 'text-danger fw-bold': mov.tipo === 'SALIDA'}">
+                                    {{ mov.tipo }}
+                                </td>
+                                <td>{{ mov.cantidad }}</td>
+                                <td>{{ mov.motivo }}</td>
+                                <td>{{ mov.usuario }}</td>
+                            </tr>
+                            <tr *ngIf="historial.length === 0">
+                                <td colspan="5" class="text-center">No hay movimientos registrados.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
     </div>
 </div>

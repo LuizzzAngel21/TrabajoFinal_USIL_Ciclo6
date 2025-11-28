@@ -1,0 +1,78 @@
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>🚚 Gestión de Distribución</h2>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white fw-bold">
+            Órdenes Pendientes de Entrega
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID Orden</th>
+                            <th>Destino</th>
+                            <th>Fecha Distribución</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let orden of ordenesPendientes">
+                            <td>{{ orden.idOrdenDist }}</td>
+                            <td>{{ orden.destino }}</td>
+                            <td>{{ orden.fechaDistribucion | date:'medium' }}</td>
+                            <td><span class="badge bg-warning text-dark">{{ orden.estado }}</span></td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                                    data-bs-target="#asignarVehiculoModal" (click)="abrirModal(orden)">
+                                    Asignar Vehículo
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div *ngIf="ordenesPendientes.length === 0" class="alert alert-info text-center">
+                    No hay órdenes pendientes de entrega.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Asignar Vehículo -->
+<div class="modal fade" id="asignarVehiculoModal" tabindex="-1" aria-labelledby="asignarVehiculoModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="asignarVehiculoModalLabel">Asignar Vehículo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Destino:</strong> {{ ordenSeleccionada?.destino }}</p>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Seleccione un Vehículo:</label>
+                    <select class="form-select" [(ngModel)]="idVehiculoSeleccionado">
+                        <option [ngValue]="null" disabled selected>Seleccione...</option>
+                        <option *ngFor="let v of vehiculos" [ngValue]="v.idVehiculo">
+                            {{ v.marca }} {{ v.modelo }} - {{ v.placa }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" [disabled]="!idVehiculoSeleccionado"
+                    (click)="asignarVehiculo()" data-bs-dismiss="modal">
+                    Guardar Asignación
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

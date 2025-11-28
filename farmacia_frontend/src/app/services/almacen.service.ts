@@ -15,4 +15,8 @@ export class AlmacenService {
     getCatalogo(): Observable<Producto[]> {
         return this.http.get<Producto[]>(`${this.apiUrl}/catalogo`);
     }
+
+    getHistorial(idProducto: number): Observable<any[]> {
+        return this.http.get<any[]>(`http://localhost:8080/api/v1/movimientos/${idProducto}`);
+    }
 }

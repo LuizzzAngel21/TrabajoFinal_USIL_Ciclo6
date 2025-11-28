@@ -19,6 +19,10 @@ public class OrdenDistribucion {
     @Column(name = "id_usuario_creacion", nullable = false)
     private Integer idUsuarioCreacion; // Logical reference
 
+    @ManyToOne
+    @JoinColumn(name = "id_vehiculo")
+    private Vehiculo vehiculo;
+
     @Column(name = "fecha_distribucion")
     private LocalDateTime fechaDistribucion = LocalDateTime.now();
 

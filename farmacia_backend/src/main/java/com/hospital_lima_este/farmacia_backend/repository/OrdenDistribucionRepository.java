@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface OrdenDistribucionRepository extends JpaRepository<OrdenDistribucion, Integer> {
+    java.util.List<OrdenDistribucion> findByEstado(String estado);
 }

@@ -23,4 +23,12 @@ export class CompraService {
     generarOrden(payload: any): Observable<void> {
         return this.http.post<void>(`${this.apiUrl}/generar-orden`, payload);
     }
+
+    getOrdenesEmitidas(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/ordenes`);
+    }
+
+    recepcionarOrden(idOrden: number): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/ordenes/${idOrden}/recepcionar`, {});
+    }
 }

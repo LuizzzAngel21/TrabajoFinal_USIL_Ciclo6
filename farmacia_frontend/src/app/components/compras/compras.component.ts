@@ -16,6 +16,7 @@ import { Proveedor } from '../../models/proveedor.model';
 export class ComprasComponent implements OnInit {
     solicitudes: SolicitudCompra[] = [];
     proveedores: Proveedor[] = [];
+    ordenesEmitidas: any[] = [];
 
     solicitudSeleccionada: SolicitudCompra | null = null;
     idProveedor: number | null = null;
@@ -37,6 +38,7 @@ export class ComprasComponent implements OnInit {
     ngOnInit(): void {
         this.cargarSolicitudes();
         this.cargarProveedores();
+        this.cargarOrdenesEmitidas();
     }
 
     cargarSolicitudes(): void {
@@ -54,6 +56,15 @@ export class ComprasComponent implements OnInit {
                 this.proveedores = data;
             },
             error: (err: any) => console.error('Error al cargar proveedores', err),
+        });
+    }
+
+    cargarOrdenesEmitidas(): void {
+        this.compraService.getOrdenesEmitidas().subscribe({
+            next: (data) => {
+                this.ordenesEmitidas = data;
+            },
+            error: (err) => console.error('Error al cargar órdenes emitidas', err)
         });
     }
 
@@ -79,8 +90,6 @@ export class ComprasComponent implements OnInit {
                     this.idProductoSeleccionado = detalle.producto ? detalle.producto.idProducto : (detalle.idProducto || 0);
                     this.nombreProducto = detalle.producto ? detalle.producto.nombreProducto : solicitud.motivo;
 
-                    console.log('Detalles cargados:', detalle);
-
                     // Si ya hay proveedor seleccionado, recalcular
                     if (this.idProveedor) {
                         this.obtenerPrecioUnitario();
@@ -102,9 +111,6 @@ export class ComprasComponent implements OnInit {
                 next: (precioRef) => {
                     this.precioUnitarioMostrado = precioRef;
                     this.precioTotal = this.precioUnitarioMostrado * this.cantidadMostrada;
-
-                    console.log('Precio Unitario:', this.precioUnitarioMostrado);
-                    console.log('Total Calculado:', this.precioTotal);
                 },
                 error: (err) => {
                     console.error('Error al obtener precio referencial', err);
@@ -135,6 +141,7 @@ export class ComprasComponent implements OnInit {
                 alert('Orden de Compra generada exitosamente');
                 this.solicitudSeleccionada = null;
                 this.cargarSolicitudes();
+                this.cargarOrdenesEmitidas();
                 // El modal se cerrará automáticamente por el atributo data-bs-dismiss en el botón
             },
             error: (err: any) => {
@@ -142,5 +149,21 @@ export class ComprasComponent implements OnInit {
                 alert('Error al generar la orden');
             },
         });
+    }
+
+    recepcionarOrden(idOrden: number): void {
+        if (confirm('¿Confirmar recepción de mercadería?')) {
+            this.compraService.recepcionarOrden(idOrden).subscribe({
+                next: () => {
+                    alert('Mercadería recepcionada y stock actualizado correctamente.');
+                    this.cargarOrdenesEmitidas();
+                    this.cargarSolicitudes(); // Recargar también solicitudes por si acaso
+                },
+                error: (err) => {
+                    console.error('Error al recepcionar orden', err);
+                    alert('Error al recepcionar la orden');
+                }
+            });
+        }
     }
 }

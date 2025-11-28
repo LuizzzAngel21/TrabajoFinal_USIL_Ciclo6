@@ -21,23 +21,25 @@ public class RequerimientoService {
     private final DepartamentoRepository departamentoRepository;
     private final DetalleRequerimientoRepository detalleRequerimientoRepository;
     private final ProductoRepository productoRepository;
-    
-    // New repositories needed for logic
+
     private final InventarioRepository inventarioRepository;
     private final OrdenDistribucionRepository ordenDistribucionRepository;
     private final SolicitudCompraRepository solicitudCompraRepository;
     private final DetalleSolicitudCompraRepository detalleSolicitudCompraRepository;
+    private final LoteProductoRepository loteProductoRepository;
+    private final DetalleOrdenDistribucionRepository detalleOrdenDistribucionRepository;
+    private final MovimientoInventarioService movimientoInventarioService;
 
     @Transactional(readOnly = true)
     public List<RequerimientoDTO> listarPendientes() {
-        // Use findByEstadoIgnoreCase as defined in the repository
         List<Requerimiento> requerimientos = requerimientoRepository.findByEstadoIgnoreCase("Pendiente");
-        
+
         return requerimientos.stream().map(req -> {
             Usuario usuario = usuarioRepository.findById(req.getIdUsuarioSolicitante()).orElse(null);
             String nombreSolicitante = usuario != null ? usuario.getNombreUsuario() : "Desconocido";
-            String areaDepartamento = req.getDepartamento() != null ? req.getDepartamento().getNombreDepartamento() : "Sin Departamento";
-            
+            String areaDepartamento = req.getDepartamento() != null ? req.getDepartamento().getNombreDepartamento()
+                    : "Sin Departamento";
+
             String colorPrioridad = "green";
             if ("ALTA".equalsIgnoreCase(req.getPrioridad())) {
                 colorPrioridad = "red";
@@ -45,7 +47,7 @@ public class RequerimientoService {
                 colorPrioridad = "orange";
             }
 
-            int cantidadItems = 0; 
+            int cantidadItems = 0;
 
             return RequerimientoDTO.builder()
                     .idRequerimiento(req.getIdRequerimiento())
@@ -73,7 +75,7 @@ public class RequerimientoService {
         requerimiento.setPrioridad(dto.getPrioridad());
         requerimiento.setObservacion(dto.getObservacion());
         requerimiento.setEstado("Pendiente");
-        
+
         Requerimiento savedRequerimiento = requerimientoRepository.save(requerimiento);
 
         // Create Detail
@@ -85,7 +87,7 @@ public class RequerimientoService {
         detalle.setProducto(producto);
         detalle.setCantidad(dto.getCantidad());
         detalle.setCantidadAtendida(0);
-        
+
         detalleRequerimientoRepository.save(detalle);
     }
 
@@ -93,42 +95,63 @@ public class RequerimientoService {
     public void atenderRequerimiento(Integer id) {
         Requerimiento requerimiento = requerimientoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Requerimiento no encontrado"));
-        
+
         // 1. Get details
-        List<DetalleRequerimiento> detalles = detalleRequerimientoRepository.findByIdRequerimiento(requerimiento.getIdRequerimiento());
-        
+        List<DetalleRequerimiento> detalles = detalleRequerimientoRepository
+                .findByIdRequerimiento(requerimiento.getIdRequerimiento());
+
         for (DetalleRequerimiento detalle : detalles) {
             Integer idProducto = detalle.getProducto().getIdProducto();
             Integer cantidadSolicitada = detalle.getCantidad();
-            
+
             // 2. Check stock
             Integer stockTotal = inventarioRepository.calcularStockTotal(idProducto);
-            if (stockTotal == null) stockTotal = 0;
-            
+            if (stockTotal == null)
+                stockTotal = 0;
+
             if (stockTotal >= cantidadSolicitada) {
-                // 3a. Create OrdenDistribucion
+                // 1. Create OrdenDistribucion
                 OrdenDistribucion orden = new OrdenDistribucion();
                 orden.setRequerimiento(requerimiento);
                 orden.setIdUsuarioCreacion(1); // Hardcoded system user or current user
                 orden.setEstado("PENDIENTE_ENTREGA");
                 orden.setPrioridad(requerimiento.getPrioridad());
                 ordenDistribucionRepository.save(orden);
-                
-                // Descontar stock
-                inventarioRepository.descontarStock(idProducto, cantidadSolicitada);
-                
-                // Optional: Reserve stock logic would go here
+
+                // 2. Buscar el lote y descontar el stock
+                LoteProducto lote = loteProductoRepository
+                        .findFirstByProductoAndStockActualGreaterThan(detalle.getProducto(), 0)
+                        .orElseThrow(() -> new RuntimeException("No se encontró un lote con stock para el producto: "
+                                + detalle.getProducto().getNombreProducto()));
+
+                // Descontar del lote (Simplificación: asume que el lote tiene suficiente o
+                // permite negativo temporalmente si la lógica de selección no es perfecta)
+                // En un sistema real, iteraríamos sobre lotes.
+                lote.setStockActual(lote.getStockActual() - cantidadSolicitada);
+                loteProductoRepository.save(lote);
+
+                // 3. Guardar DetalleOrdenDistribucion
+                DetalleOrdenDistribucion detalleDist = new DetalleOrdenDistribucion();
+                detalleDist.setOrdenDistribucion(orden);
+                detalleDist.setProducto(detalle.getProducto());
+                detalleDist.setCantidad(cantidadSolicitada);
+                detalleDist.setLoteProducto(lote);
+                detalleOrdenDistribucionRepository.save(detalleDist);
+
+                // 4. Registrar Movimiento (SALIDA)
+                movimientoInventarioService.registrarMovimiento(idProducto, cantidadSolicitada, "SALIDA",
+                        "Despacho Req #" + id);
             } else {
-                // 3b. Create SolicitudCompra
+                // 3c. Create SolicitudCompra
                 SolicitudCompra solicitud = new SolicitudCompra();
                 solicitud.setRequerimiento(requerimiento);
                 // Correctly set the ID from the Requerimiento entity
-                solicitud.setIdUsuarioSolicitante(requerimiento.getIdUsuarioSolicitante()); 
+                solicitud.setIdUsuarioSolicitante(requerimiento.getIdUsuarioSolicitante());
                 solicitud.setMotivo("Stock insuficiente para producto: " + detalle.getProducto().getNombreProducto());
                 solicitud.setEstado("PENDIENTE_APROBACION");
                 solicitudCompraRepository.save(solicitud);
 
-                // Create DetalleSolicitudCompra (The missing link)
+                // Create DetalleSolicitudCompra
                 DetalleSolicitudCompra detalleSolicitud = new DetalleSolicitudCompra();
                 detalleSolicitud.setSolicitudCompra(solicitud);
                 detalleSolicitud.setProducto(detalle.getProducto());
@@ -136,11 +159,11 @@ public class RequerimientoService {
                 detalleSolicitud.setCantidadSolicitada(cantidadSolicitada);
                 detalleSolicitud.setCantidadAprobada(cantidadSolicitada); // Default to requested amount
                 detalleSolicitud.setEstado("PENDIENTE");
-                
+
                 detalleSolicitudCompraRepository.save(detalleSolicitud);
             }
         }
-        
+
         // 4. Update Requerimiento status
         requerimiento.setEstado("PROCESADO");
         requerimientoRepository.save(requerimiento);

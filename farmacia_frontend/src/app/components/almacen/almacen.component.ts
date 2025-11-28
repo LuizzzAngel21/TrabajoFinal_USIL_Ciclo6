@@ -12,6 +12,8 @@ import { Producto } from '../../models/producto.model';
 })
 export class AlmacenComponent implements OnInit {
     productos: Producto[] = [];
+    historial: any[] = [];
+    productoSeleccionado: string = '';
 
     constructor(private almacenService: AlmacenService) { }
 
@@ -22,6 +24,19 @@ export class AlmacenComponent implements OnInit {
             },
             error: (err) => {
                 console.error('Error al cargar catálogo', err);
+            }
+        });
+    }
+
+    verHistorial(prod: any): void {
+        this.productoSeleccionado = prod.nombre;
+        this.historial = [];
+        this.almacenService.getHistorial(prod.idProducto).subscribe({
+            next: (data) => {
+                this.historial = data;
+            },
+            error: (err) => {
+                console.error('Error al cargar historial', err);
             }
         });
     }

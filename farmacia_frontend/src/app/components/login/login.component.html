@@ -1,0 +1,32 @@
+<div class="container d-flex justify-content-center align-items-center vh-100 bg-light">
+    <div class="card shadow p-4" style="width: 400px;">
+        <div class="card-body">
+            <h3 class="card-title text-center mb-4 text-primary">
+                <i class="bi bi-hospital-fill"></i> Acceso al Sistema
+            </h3>
+
+            <div *ngIf="errorMessage" class="alert alert-danger text-center" role="alert">
+                {{ errorMessage }}
+            </div>
+
+            <form (ngSubmit)="onSubmit()">
+                <div class="mb-3">
+                    <label for="username" class="form-label fw-bold">Usuario</label>
+                    <input type="text" class="form-control" id="username" [(ngModel)]="nombreUsuario" name="username"
+                        required placeholder="Ingrese su usuario">
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label fw-bold">Contraseña</label>
+                    <input type="password" class="form-control" id="password" [(ngModel)]="contrasena" name="password"
+                        required placeholder="Ingrese su contraseña">
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">Ingresar</button>
+                </div>
+            </form>
+        </div>
+        <div class="card-footer text-center text-muted mt-3">
+            Hospital Lima Este &copy; 2024
+        </div>
+    </div>
+</div>
