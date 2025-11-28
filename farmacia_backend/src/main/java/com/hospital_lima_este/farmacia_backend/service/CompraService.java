@@ -21,7 +21,6 @@ public class CompraService {
     private final OrdenCompraRepository ordenCompraRepository;
     private final SolicitudCompraRepository solicitudCompraRepository;
     private final ProveedorRepository proveedorRepository;
-    private final DetalleRequerimientoRepository detalleRequerimientoRepository;
     private final DetalleOrdenCompraRepository detalleOrdenCompraRepository;
     private final DetalleSolicitudCompraRepository detalleSolicitudCompraRepository;
     private final ProductoProveedorRepository productoProveedorRepository;
